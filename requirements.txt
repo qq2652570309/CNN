@@ -1,0 +1,4 @@
+numpy
+tensorflow
+ngraph-tensorflow-bridge
+keras
