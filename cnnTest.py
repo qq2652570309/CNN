@@ -3,7 +3,7 @@ import time
 import math
 import numpy as np
 import tensorflow as tf
-import ngraph_bridge
+# import ngraph_bridge
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 
 # Load the CIFAR10 dataset
@@ -130,27 +130,73 @@ def complexModel():
         # - Store last layer output in yOut                                         #
         #############################################################################
 
+        # Wconv1 = tf.get_variable("wConv", shape=[7, 7, 3, 64])
+        # bConv = tf.get_variable("bConv", shape=[64])
+
+        # # Convolutional Neural Network with stride = 2
+        # a = tf.nn.conv2d(x, Wconv1, strides=[1, 2, 2, 1], padding='VALID') + bConv # Stride [batch, height, width, channels]
+        # # Relu Activation
+        # h = tf.nn.relu(a)
+
+        # # 2x2 Max Pooling
+        # max_pooling = tf.nn.max_pool(h, ksize=[1,2,2,1], strides=[1,2,2,1], padding='VALID') # 6*6*32
+        # hFlat = tf.reshape(max_pooling, [-1, 6*6*64]) # Flat the output to be size 6*6*32 each row
+
+        # # Fully connected layer with 1024 hidden neurons
+        # W1 = tf.get_variable("w1", shape=[6*6*64, 1024])
+        # b1 = tf.get_variable("b1", shape=[1024])
+        # Hin = tf.matmul(hFlat, W1) + b1
+
+        # # Relu Activation
+        # Hout = tf.nn.relu(Hin)
+        # HoutFlat = tf.reshape(Hout, [-1, 1024]) # Flat the output to be size 5408 each row
+
+        # # Fully connected layer to map to 10 output
+        # W2 = tf.get_variable("w2", shape=[1024, 10])
+        # b2 = tf.get_variable("b2", shape=[10])
+        # yOut = tf.matmul(HoutFlat, W2) + b2
        
 
 
 
+        #       7x7 Convolution with stride = 2
+        Wconv1 = tf.get_variable("Wconv1", shape=[7, 7, 3, 64])
+        bConv = tf.get_variable("bConv", shape=[64])
+
+        # Define Convolutional Neural Network
+        a = tf.nn.conv2d(x, Wconv1, strides=[1,2,2,1], padding='VALID') + bConv # Stride [batch, height, width, channels]
+        #       Relu Activation
+        h = tf.nn.relu(a)
+        #       2x2 Max Pooling
+        max_pool_output = tf.nn.max_pool(value=h, ksize=[1,2,2,1], strides=[1,2,2,1],padding='VALID')
+
+        hFlat = tf.reshape(max_pool_output, [-1, 6*6*64]) # Flat the output to be size 6*6*64 each row
+
+        #       Fully connected layer with 1024 hidden neurons
+        W1 = tf.get_variable("W1", shape=[6*6*64, 1024])
+        b1 = tf.get_variable("b1", shape=[1024])
+
+        fully_connected_output = tf.matmul(hFlat, W1) + b1
+        #       Relu Activation
+        relu_out =  tf.nn.relu(fully_connected_output)
+        relu_outFlat = tf.reshape(relu_out, [-1, 1024]) # Flat the output to be size 1024 each row
+        #       Fully connected layer to map to 10 outputs
+        W2 = tf.get_variable("W2", shape=[1024,10])
+        b2 = tf.get_variable("b2", shape=[10])
+        # - Store last layer output in yOut
+        yOut = tf.matmul(relu_outFlat, W2) + b2
 
 
 
 
 
-
-
-
-
-       
         #########################################################################
         #                       END OF YOUR CODE                                #
         #########################################################################
 
         # Define Loss
         totalLoss = tf.losses.hinge_loss(tf.one_hot(y, 10), logits=yOut)
-        meanLoss = tf.reduce_mean(totalLoss) + 5e4*tf.nn.l2_loss(Wconv1) + 5e4*tf.nn.l2_loss(W1) + 5e4*tf.nn.l2_loss(W2)
+        meanLoss = tf.reduce_mean(totalLoss) + 5e-4*tf.nn.l2_loss(Wconv1) + 5e-4*tf.nn.l2_loss(W1) + 5e-4*tf.nn.l2_loss(W2)
 
         # Define Optimizer
         optimizer = tf.train.AdamOptimizer(5e-4)
