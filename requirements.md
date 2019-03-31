@@ -1,4 +1,4 @@
 numpy
-tensorflow
-ngraph-tensorflow-bridge
+tensorflow == 1.12.0
 keras
+ngraph-tensorflow-bridge
