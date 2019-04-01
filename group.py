@@ -38,11 +38,11 @@ xTest -= meanImage
 deviceType = "/cpu:0"
 
 def group_train():
-    for intra in [5, 10, 20]:
+    for inter in [5, 10, 20]:
         print("\n#########################################")
         print("intra_op_parallelism_threads: {0}".format(intra))
 
-        tfConfig = tf.ConfigProto(intra_op_parallelism_threads=intra, inter_op_parallelism_threads=2, allow_soft_placement=True, device_count = {'CPU': 10})
+        tfConfig = tf.ConfigProto(intra_op_parallelism_threads=10, inter_op_parallelism_threads=inter, allow_soft_placement=True, device_count = {'CPU': 10})
         tfConfig.gpu_options.allow_growth = True
 
         # Simple Model
