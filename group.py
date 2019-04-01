@@ -38,7 +38,10 @@ xTest -= meanImage
 deviceType = "/cpu:0"
 
 def group_train():
-    for intra in [2, 8, 32]:
+    for intra in [5, 10, 20]:
+        print("\n#########################################")
+        print("intra_op_parallelism_threads: {0}".format(intra))
+
         tfConfig = tf.ConfigProto(intra_op_parallelism_threads=intra, inter_op_parallelism_threads=2, allow_soft_placement=True, device_count = {'CPU': 10})
         tfConfig.gpu_options.allow_growth = True
 
@@ -74,7 +77,7 @@ def group_train():
 
                 return [meanLoss, accuracy, trainStep]
 
-        def train(Model, xT, yT, xV, yV, xTe, yTe, tfConfig, batchSize=1000, epochs=10, printEvery=10):
+        def train(Model, xT, yT, xV, yV, xTe, yTe, batchSize=1000, epochs=100, printEvery=10):
             # Train Model
             trainIndex = np.arange(xTrain.shape[0])
             np.random.shuffle(trainIndex)

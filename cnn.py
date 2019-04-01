@@ -37,7 +37,7 @@ xTest -= meanImage
 # Select device
 deviceType = "/cpu:0"
 tfConfig = tf.ConfigProto(intra_op_parallelism_threads=10, inter_op_parallelism_threads=2, allow_soft_placement=True, device_count = {'CPU': 10})
-tfConfig.gpu_options.allow_growth = True        
+tfConfig.gpu_options.allow_growth = True
 
 # Simple Model
 tf.reset_default_graph()
@@ -130,27 +130,40 @@ def complexModel():
         # - Store last layer output in yOut                                         #
         #############################################################################
 
-       
+        Wconv1 = tf.get_variable("wConv", shape=[7, 7, 3, 32])
+        bConv = tf.get_variable("bConv", shape=[32])
+
+        # Convolutional Neural Network with stride = 2
+        a = tf.nn.conv2d(x, Wconv1, strides=[1, 2, 2, 1], padding='VALID') + bConv # Stride [batch, height, width, channels]
+        # Relu Activation
+        h = tf.nn.relu(a)
+
+        # 2x2 Max Pooling
+        max_pooling = tf.nn.max_pool(h, ksize=[1,2,2,1], strides=[1,2,2,1], padding='VALID') # 6*6*32
+        hFlat = tf.reshape(max_pooling, [-1, 6*6*32]) # Flat the output to be size 6*6*32 each row
+
+        # Fully connected layer with 1024 hidden neurons
+        W1 = tf.get_variable("w1", shape=[6*6*32, 1024])
+        b1 = tf.get_variable("b1", shape=[1024])
+        Hin = tf.matmul(hFlat, W1) + b1
+
+        # Relu Activation
+        Hout = tf.nn.relu(Hin)
+        HoutFlat = tf.reshape(Hout, [-1, 1024]) # Flat the output to be size 1024 each row
+
+        # Fully connected layer to map to 10 output
+        W2 = tf.get_variable("w2", shape=[1024, 10])
+        b2 = tf.get_variable("b2", shape=[10])
+        yOut = tf.matmul(HoutFlat, W2) + b2
 
 
-
-
-
-
-
-
-
-
-
-
-       
         #########################################################################
         #                       END OF YOUR CODE                                #
         #########################################################################
 
         # Define Loss
         totalLoss = tf.losses.hinge_loss(tf.one_hot(y, 10), logits=yOut)
-        meanLoss = tf.reduce_mean(totalLoss) + 5e4*tf.nn.l2_loss(Wconv1) + 5e4*tf.nn.l2_loss(W1) + 5e4*tf.nn.l2_loss(W2)
+        meanLoss = tf.reduce_mean(totalLoss) + 5e-4*tf.nn.l2_loss(Wconv1) + 5e-4*tf.nn.l2_loss(W1) + 5e-4*tf.nn.l2_loss(W2)
 
         # Define Optimizer
         optimizer = tf.train.AdamOptimizer(5e-4)
@@ -165,4 +178,3 @@ def complexModel():
 # Start training complex model
 print("\n################ Complex Model #########################")
 train(complexModel(), xTrain, yTrain, xVal, yVal, xTest, yTest)
-
